@@ -7,6 +7,7 @@ export default defineConfig({
     base: './',
     resolve: {
         alias: {
+            '@avyx/core/styles': path.resolve(__dirname, '../00_avyx-core/src/ui/styles/main.css'),
             '@avyx/core': path.resolve(__dirname, '../00_avyx-core/src/index.ts'),
         },
     },
