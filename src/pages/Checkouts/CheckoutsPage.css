@@ -1,0 +1,81 @@
+.checkouts-page {
+    max-width: 600px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: var(--color-surface-hover);
+}
+
+.filter-btn.active {
+    background: var(--color-primary);
+    color: white;
+}
+
+.checkout-table {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.checkout-header {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 16px;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: var(--color-text-subtle);
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    background: var(--color-surface);
+}
+
+.checkout-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.checkout-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 16px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.checkout-row:last-child {
+    border-bottom: none;
+}
+
+.checkout-row:hover {
+    background: var(--color-bg-subtle);
+}
+
+.checkout-score {
+    font-weight: 700;
+    font-size: 1.125rem;
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.checkout-darts {
+    color: var(--color-text);
+    font-weight: 500;
+}

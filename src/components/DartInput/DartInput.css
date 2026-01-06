@@ -1,0 +1,202 @@
+.dart-input {
+    background: var(--color-surface);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: var(--shadow-md);
+}
+
+.current-darts {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.darts-display {
+    display: flex;
+    gap: 8px;
+}
+
+.dart-slot {
+    width: 64px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-subtle);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.dart-slot.filled {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.dart-slot .empty {
+    color: var(--color-text-muted);
+}
+
+.total-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.total-label {
+    font-size: 0.75rem;
+    color: var(--color-text-subtle);
+}
+
+.total-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+/* Multiplier Row */
+.multiplier-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.mult-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mult-btn:hover {
+    background: var(--color-surface-hover);
+}
+
+.mult-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* Segment Grid */
+.segment-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.segment-btn {
+    padding: 12px 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.segment-btn:hover:not(:disabled) {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.segment-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Special Row */
+.special-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.special-btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.special-btn.bull {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+}
+
+.special-btn.bull-eye {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.special-btn.miss {
+    background: var(--color-bg-subtle);
+    color: var(--color-text-subtle);
+}
+
+.special-btn:hover:not(:disabled) {
+    opacity: 0.8;
+}
+
+.special-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Action Row */
+.action-row {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 14px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn.undo {
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+}
+
+.action-btn.undo-round {
+    background: rgba(249, 115, 22, 0.15);
+    color: #f97316;
+}
+
+.action-btn.confirm {
+    background: var(--color-primary);
+    color: white;
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}

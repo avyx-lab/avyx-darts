@@ -1,0 +1,304 @@
+.active-game-page {
+    max-width: 1400px;
+    /* Increased max-width for side-by-side */
+    margin: 0 auto;
+    position: relative;
+    height: calc(100vh - var(--header-height) - 32px);
+    /* Constrain height */
+    display: flex;
+    flex-direction: column;
+}
+
+.active-game-page.layout-stacked {
+    max-width: 600px;
+    height: auto;
+    /* Stacked can scroll naturally */
+}
+
+/* Layout Modes */
+.game-layout {
+    display: flex;
+    gap: 24px;
+    height: 100%;
+    /* Take full available height */
+    min-height: 0;
+    /* Enabling flex shrinking */
+}
+
+.game-layout-stacked {
+    flex-direction: column;
+    height: auto;
+}
+
+.game-layout-side-by-side {
+    flex-direction: row;
+    align-items: stretch;
+    height: 100%;
+    overflow: hidden;
+    /* Prevent body scroll */
+}
+
+.game-layout-side-by-side .game-scoreboard {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-layout-side-by-side .game-scoreboard .scoreboard {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-layout-side-by-side .game-scoreboard .scoreboard .scoreboard-players {
+    flex: 1;
+}
+
+.game-layout-side-by-side .game-input-wrapper {
+    width: 380px;
+    flex-shrink: 0;
+}
+
+.game-layout-stacked .game-scoreboard,
+.game-layout-stacked .game-input-wrapper {
+    width: 100%;
+}
+
+/* Game Input Wrapper */
+.game-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--color-bg-subtle);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.mode-btn {
+    padding: 8px 16px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: transparent;
+    color: var(--color-text-subtle);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mode-btn:hover {
+    color: var(--color-text);
+}
+
+.mode-btn.active {
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+}
+
+.game-input {
+    width: 100%;
+}
+
+/* Mobile always stacked */
+@media (max-width: 768px) {
+    .game-layout {
+        flex-direction: column !important;
+    }
+
+    .game-layout .game-input-wrapper {
+        width: 100% !important;
+    }
+}
+
+/* No Game State */
+.no-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    gap: 16px;
+}
+
+.no-game h1 {
+    color: var(--color-text);
+}
+
+.no-game p {
+    color: var(--color-text-subtle);
+}
+
+/* Game Finished */
+.game-finished {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.winner-banner {
+    text-align: center;
+    padding: 40px 32px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), var(--color-surface));
+    border-radius: 16px;
+    border: 2px solid rgba(251, 191, 36, 0.4);
+}
+
+.winner-crown {
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 8px;
+    animation: crownBounce 1s ease-in-out infinite;
+}
+
+@keyframes crownBounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.winner-banner h1 {
+    font-size: 2rem;
+    margin-bottom: 16px;
+    color: var(--color-text);
+}
+
+.winner-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.winner-avatar {
+    font-size: 2.5rem;
+}
+
+.winner-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fbbf24;
+}
+
+.finished-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* Abandon Button */
+.btn-abandon {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-abandon:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+}
+
+.abandon-modal {
+    max-width: 400px;
+    width: 100%;
+    animation: modalSlideIn 0.2s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: #f59e0b;
+}
+
+.abandon-modal h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--color-text);
+}
+
+.abandon-modal p {
+    font-size: 0.9375rem;
+    text-align: center;
+    color: var(--color-text-subtle);
+    margin-bottom: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-danger {
+    padding: 10px 20px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}

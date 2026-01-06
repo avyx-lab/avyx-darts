@@ -1,0 +1,201 @@
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--color-surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+}
+
+.player-card.selectable {
+    cursor: pointer;
+}
+
+.player-card.selectable:hover {
+    background: var(--color-surface-hover);
+}
+
+.player-card.selected {
+    border: 2px solid var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.player-card.editing {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.player-avatar-large {
+    font-size: 2.5rem;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-subtle);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.player-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.player-name-large {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.player-double {
+    font-size: 0.8125rem;
+    color: var(--color-text-subtle);
+}
+
+.player-stats-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.player-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-btn,
+.delete-btn {
+    padding: 8px;
+    border-radius: 6px;
+    background: var(--color-bg-subtle);
+    color: var(--color-text-subtle);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.edit-btn:hover {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.selected-indicator {
+    padding: 8px;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Edit Form */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-row label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-subtle);
+}
+
+.form-row input {
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.form-row input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.avatar-picker,
+.double-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.avatar-option,
+.double-option {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.avatar-option {
+    font-size: 1.25rem;
+}
+
+.double-option {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.avatar-option.selected,
+.double-option.selected {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.save-btn,
+.cancel-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.save-btn {
+    background: var(--color-primary);
+    color: white;
+}
+
+.cancel-btn {
+    background: var(--color-bg-subtle);
+    color: var(--color-text);
+}
