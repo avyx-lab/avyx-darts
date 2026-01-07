@@ -7,9 +7,10 @@ interface NumPadProps {
     onScore: (score: number) => void;
     onUndo?: () => void;
     maxScore?: number;
+    disabled?: boolean;
 }
 
-export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
+export function NumPad({ onScore, onUndo, maxScore = 180, disabled = false }: NumPadProps) {
     const [input, setInput] = useState('');
 
     const handleNumberClick = (num: number) => {
@@ -45,11 +46,11 @@ export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
     };
 
     return (
-        <div className="numpad">
+        <div className={`numpad ${disabled ? 'disabled' : ''}`}>
             {/* Input Display */}
             <div className="numpad-display">
                 <span className="numpad-value">{input || '0'}</span>
-                <button className="backspace-btn" onClick={handleBackspace}>
+                <button className="backspace-btn" onClick={handleBackspace} disabled={disabled}>
                     <Delete size={20} />
                 </button>
             </div>
@@ -61,6 +62,7 @@ export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
                         key={score}
                         className="quick-score-btn"
                         onClick={() => handleQuickScore(score)}
+                        disabled={disabled}
                     >
                         {score}
                     </button>
@@ -75,13 +77,14 @@ export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
                         className="numpad-btn"
                         data-key={num.toString()}
                         onClick={() => handleNumberClick(num)}
+                        disabled={disabled}
                     >
                         {num}
                     </button>
                 ))}
 
                 {onUndo && (
-                    <button className="numpad-btn undo-btn" onClick={onUndo}>
+                    <button className="numpad-btn undo-btn" onClick={onUndo} disabled={disabled}>
                         <RotateCcw size={20} />
                     </button>
                 )}
@@ -90,6 +93,7 @@ export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
                     className="numpad-btn"
                     data-key="0"
                     onClick={() => handleNumberClick(0)}
+                    disabled={disabled}
                 >
                     0
                 </button>
@@ -97,6 +101,7 @@ export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
                 <button
                     className="numpad-btn clear-btn"
                     onClick={handleClear}
+                    disabled={disabled}
                 >
                     C
                 </button>
@@ -106,7 +111,7 @@ export function NumPad({ onScore, onUndo, maxScore = 180 }: NumPadProps) {
             <button
                 className="confirm-btn"
                 onClick={handleConfirm}
-                disabled={!input}
+                disabled={!input || disabled}
             >
                 Confirm
             </button>

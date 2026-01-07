@@ -10,6 +10,7 @@ interface PlayerCardProps {
     selectable?: boolean;
     selected?: boolean;
     onSelect?: () => void;
+    className?: string; // Support custom classes
 }
 
 const AVATARS = ['🎯', '🏆', '⭐', '🔥', '💪', '🎮', '🎲', '👑', '⚡', '🎪'];
@@ -22,6 +23,7 @@ export function PlayerCard({
     selectable = false,
     selected = false,
     onSelect,
+    className = '',
 }: PlayerCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(player.name);
@@ -101,7 +103,7 @@ export function PlayerCard({
 
     return (
         <div
-            className={`player-card ${selectable ? 'selectable' : ''} ${selected ? 'selected' : ''}`}
+            className={`player-card ${selectable ? 'selectable' : ''} ${selected ? 'selected' : ''} ${className}`}
             onClick={selectable ? onSelect : undefined}
         >
             <div className="player-avatar-large">{player.avatar}</div>

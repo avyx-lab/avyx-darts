@@ -4,13 +4,14 @@ import { usePlayerStore } from '../../stores/playerStore';
 import { useGameStore } from '../../stores/gameStore';
 import { PlayerCard } from '../../components/PlayerCard/PlayerCard';
 import { Card, CardBody, Button } from '@avyx/core';
-import type { StartScore, InMode, OutMode } from '../../types/darts';
+import type { StartScore, InMode, OutMode, BotDifficulty, Player, PlayerType } from '../../types/darts';
 import { Play, Users, Shuffle, Target, Search } from 'lucide-react';
 import './NewGamePage.css';
 
 const START_SCORES: StartScore[] = [301, 501, 701, 1001];
 
 type StartingMethod = 'select' | 'bullout' | 'random';
+
 
 export function NewGamePage() {
     const navigate = useNavigate();
@@ -22,19 +23,91 @@ export function NewGamePage() {
     const [outMode, setOutMode] = useState<OutMode>('double');
     const [legsToWin, setLegsToWin] = useState(3);
     const [setsToWin, setSetsToWin] = useState<number | undefined>(undefined);
+
+    // Player Selection
     const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+
+    // Single Bot (not multiple)
+    const [botSelected, setBotSelected] = useState(false);
+    const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
+    const [showBotDifficultyMenu, setShowBotDifficultyMenu] = useState(false);
+
     const [playerSearch, setPlayerSearch] = useState('');
 
     const [startingMethod, setStartingMethod] = useState<StartingMethod>('select');
     const [startingPlayerId, setStartingPlayerId] = useState<string | undefined>();
 
+    // The Bot player object
+    const BOT_ID = 'bot';
+    const botPlayer: Player = useMemo(() => ({
+        id: BOT_ID,
+        name: `Computer`,
+        avatar: '🤖',
+        preferredDouble: 20,
+        createdAt: new Date().toISOString(),
+        stats: { gamesPlayed: 0, gamesWon: 0, legsWon: 0, highestCheckout: 0, average: 0, checkoutPercentage: 0, total180s: 0 }
+    }), []);
+
+    // Combine real players only (not bot)
+    const allAvailablePlayers = useMemo(() => {
+        return [...players];
+    }, [players]);
+
     const filteredPlayers = useMemo(() => {
-        if (!playerSearch.trim()) return players;
+        if (!playerSearch.trim()) return allAvailablePlayers;
         const search = playerSearch.toLowerCase();
-        return players.filter(p => p.name.toLowerCase().includes(search));
-    }, [players, playerSearch]);
+        return allAvailablePlayers.filter(p => p.name.toLowerCase().includes(search));
+    }, [allAvailablePlayers, playerSearch]);
+
+    // Helper to get player by ID (including bot)
+    const getPlayerById = (id: string): Player | undefined => {
+        if (id === BOT_ID) {
+            return {
+                ...botPlayer,
+                name: botSelected ? `Computer (${botDifficulty})` : 'Computer'
+            };
+        }
+        return allAvailablePlayers.find(p => p.id === id);
+    };
+
+    const handleBotClick = () => {
+        if (botSelected) {
+            // If already selected, show difficulty menu to change
+            setShowBotDifficultyMenu(!showBotDifficultyMenu);
+        } else {
+            // First click shows difficulty menu
+            setShowBotDifficultyMenu(true);
+        }
+    };
+
+    const selectBotDifficulty = (diff: BotDifficulty) => {
+        setBotDifficulty(diff);
+        setBotSelected(true);
+        setShowBotDifficultyMenu(false);
+
+        // Add bot to selection if not already there
+        if (!selectedPlayerIds.includes(BOT_ID)) {
+            setSelectedPlayerIds(prev => [...prev, BOT_ID]);
+        }
+    };
+
+    const deselectBot = () => {
+        setBotSelected(false);
+        setShowBotDifficultyMenu(false);
+        setSelectedPlayerIds(prev => prev.filter(id => id !== BOT_ID));
+        if (startingPlayerId === BOT_ID) setStartingPlayerId(undefined);
+    };
 
     const togglePlayer = (playerId: string) => {
+        if (playerId === BOT_ID) {
+            if (botSelected) {
+                deselectBot();
+            } else {
+                handleBotClick();
+            }
+            return;
+        }
+
         setSelectedPlayerIds((prev) => {
             const newSelection = prev.includes(playerId)
                 ? prev.filter((id) => id !== playerId)
@@ -66,6 +139,21 @@ export function NewGamePage() {
             orderedPlayerIds.unshift(startingPlayerId);
         }
 
+        // Config maps
+        const playerTypes: Record<string, PlayerType> = {};
+        const finalBotDifficulties: Record<string, BotDifficulty> = {};
+
+        orderedPlayerIds.forEach(id => {
+            if (id === BOT_ID) {
+                playerTypes[id] = 'computer';
+                finalBotDifficulties[id] = botDifficulty;
+            } else {
+                playerTypes[id] = 'human';
+            }
+        });
+
+        // Bot info is stored in gameConfig only, not in playerStore
+
         startGame({
             startScore,
             inMode,
@@ -73,6 +161,8 @@ export function NewGamePage() {
             legsToWin,
             setsToWin,
             playerIds: orderedPlayerIds,
+            playerTypes,
+            botDifficulties: finalBotDifficulties
         });
 
         navigate('/game/active');
@@ -181,7 +271,7 @@ export function NewGamePage() {
                 <div className="players-column">
                     <section className="config-section">
                         <h2>Select Players</h2>
-                        {players.length === 0 ? (
+                        {allAvailablePlayers.length === 0 ? (
                             <Card>
                                 <CardBody className="empty-players">
                                     <Users size={24} />
@@ -193,7 +283,7 @@ export function NewGamePage() {
                             </Card>
                         ) : (
                             <>
-                                {players.length >= 6 && (
+                                {allAvailablePlayers.length >= 6 && (
                                     <div className="player-search">
                                         <Search size={18} />
                                         <input
@@ -205,6 +295,7 @@ export function NewGamePage() {
                                     </div>
                                 )}
                                 <div className="player-selection">
+                                    {/* Real players */}
                                     {filteredPlayers.map((player) => (
                                         <PlayerCard
                                             key={player.id}
@@ -214,6 +305,36 @@ export function NewGamePage() {
                                             onSelect={() => togglePlayer(player.id)}
                                         />
                                     ))}
+
+                                    {/* Bot card - always shown as a separate dummy */}
+                                    <div className={`bot-card-wrapper ${botSelected ? 'selected' : ''}`}>
+                                        <PlayerCard
+                                            player={{
+                                                ...botPlayer,
+                                                name: botSelected ? `Computer (${botDifficulty})` : 'Computer'
+                                            }}
+                                            selectable
+                                            selected={botSelected}
+                                            onSelect={handleBotClick}
+                                            className="bot-card"
+                                        />
+                                        {showBotDifficultyMenu && (
+                                            <div className="bot-difficulty-popup">
+                                                {(['easy', 'medium', 'hard', 'littler'] as BotDifficulty[]).map((diff) => (
+                                                    <button
+                                                        key={diff}
+                                                        className={`bot-diff-btn ${botDifficulty === diff ? 'active' : ''}`}
+                                                        onClick={() => selectBotDifficulty(diff)}
+                                                    >
+                                                        {diff === 'easy' && '🐣 Easy'}
+                                                        {diff === 'medium' && '🎯 Medium'}
+                                                        {diff === 'hard' && '🤖 Hard'}
+                                                        {diff === 'littler' && '🏆 Littler'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -255,12 +376,12 @@ export function NewGamePage() {
                                             onChange={(e) => setStartingPlayerId(e.target.value)}
                                         >
                                             {selectedPlayerIds.map((id) => {
-                                                const player = players.find(p => p.id === id);
-                                                return (
+                                                const player = getPlayerById(id);
+                                                return player ? (
                                                     <option key={id} value={id}>
-                                                        {player?.avatar} {player?.name}
+                                                        {player.avatar} {player.name}
                                                     </option>
-                                                );
+                                                ) : null;
                                             })}
                                         </select>
                                     </div>
@@ -273,15 +394,16 @@ export function NewGamePage() {
                                             <p>Each player throws one dart at the bull. Select who was closest:</p>
                                             <div className="bullout-players">
                                                 {selectedPlayerIds.map((id) => {
-                                                    const player = players.find(p => p.id === id);
+                                                    const player = getPlayerById(id);
+                                                    if (!player) return null;
                                                     return (
                                                         <button
                                                             key={id}
                                                             className={`bullout-btn ${startingPlayerId === id ? 'winner' : ''}`}
                                                             onClick={() => handleBullOutResult(id)}
                                                         >
-                                                            <span className="bullout-avatar">{player?.avatar}</span>
-                                                            <span>{player?.name}</span>
+                                                            <span className="bullout-avatar">{player.avatar}</span>
+                                                            <span>{player.name}</span>
                                                             {startingPlayerId === id && <span className="winner-badge">✓ Closest</span>}
                                                         </button>
                                                     );

@@ -58,6 +58,16 @@
     border: 2px solid var(--color-primary);
 }
 
+.starter-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-primary);
+    border-radius: 4px 0 0 4px;
+}
+
 /* Celebration styles */
 .player-score.celebrating {
     animation: celebratePulse 0.5s ease-in-out;
@@ -205,6 +215,66 @@
     align-items: flex-end;
     gap: 4px;
     min-width: 60px;
+}
+
+/* Round stats - last round and average */
+.round-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+}
+
+.last-round {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.last-round-total {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    min-width: 32px;
+}
+
+.last-round-darts {
+    display: flex;
+    gap: 4px;
+}
+
+.dart-name {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    background: var(--color-surface-hover);
+    border-radius: 4px;
+    color: var(--color-text-subtle);
+}
+
+.no-throws {
+    color: var(--color-text-muted);
+}
+
+.leg-average {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+}
+
+.avg-label {
+    font-size: 0.65rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+.avg-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary);
 }
 
 .set-wins,

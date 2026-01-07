@@ -8,11 +8,12 @@ interface DartInputProps {
     onUndo?: () => void;
     maxDarts?: number;
     onDartChange?: (darts: Dart[]) => void;
+    disabled?: boolean;
 }
 
 const SEGMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
 
-export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange }: DartInputProps) {
+export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange, disabled = false }: DartInputProps) {
     const [currentDarts, setCurrentDarts] = useState<Dart[]>([]);
     const [multiplier, setMultiplier] = useState<Multiplier>(1);
 
@@ -56,7 +57,7 @@ export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange }: Dar
     const totalScore = currentDarts.reduce((sum, d) => sum + d.value, 0);
 
     return (
-        <div className="dart-input">
+        <div className={`dart-input ${disabled ? 'disabled' : ''}`}>
             {/* Current Darts Display */}
             <div className="current-darts">
                 <div className="darts-display">
@@ -81,18 +82,21 @@ export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange }: Dar
                 <button
                     className={`mult-btn ${multiplier === 1 ? 'active' : ''}`}
                     onClick={() => setMultiplier(1)}
+                    disabled={disabled}
                 >
                     Single
                 </button>
                 <button
                     className={`mult-btn ${multiplier === 2 ? 'active' : ''}`}
                     onClick={() => setMultiplier(2)}
+                    disabled={disabled}
                 >
                     Double
                 </button>
                 <button
                     className={`mult-btn ${multiplier === 3 ? 'active' : ''}`}
                     onClick={() => setMultiplier(3)}
+                    disabled={disabled}
                 >
                     Triple
                 </button>
@@ -105,7 +109,7 @@ export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange }: Dar
                         key={seg}
                         className="segment-btn"
                         onClick={() => handleSegmentClick(seg)}
-                        disabled={currentDarts.length >= maxDarts}
+                        disabled={currentDarts.length >= maxDarts || disabled}
                     >
                         {seg}
                     </button>
@@ -117,21 +121,21 @@ export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange }: Dar
                 <button
                     className="special-btn bull"
                     onClick={() => handleSegmentClick(25, 1)}
-                    disabled={currentDarts.length >= maxDarts}
+                    disabled={currentDarts.length >= maxDarts || disabled}
                 >
                     25
                 </button>
                 <button
                     className="special-btn bull-eye"
                     onClick={() => handleSegmentClick(25, 2)}
-                    disabled={currentDarts.length >= maxDarts}
+                    disabled={currentDarts.length >= maxDarts || disabled}
                 >
                     Bull (50)
                 </button>
                 <button
                     className="special-btn miss"
                     onClick={handleMiss}
-                    disabled={currentDarts.length >= maxDarts}
+                    disabled={currentDarts.length >= maxDarts || disabled}
                 >
                     Miss (0)
                 </button>
@@ -142,19 +146,19 @@ export function DartInput({ onConfirm, onUndo, maxDarts = 3, onDartChange }: Dar
                 <button
                     className="action-btn undo"
                     onClick={handleRemoveLast}
-                    disabled={currentDarts.length === 0}
+                    disabled={currentDarts.length === 0 || disabled}
                 >
                     ← Remove
                 </button>
                 {onUndo && (
-                    <button className="action-btn undo-round" onClick={onUndo}>
+                    <button className="action-btn undo-round" onClick={onUndo} disabled={disabled}>
                         ↩ Undo Round
                     </button>
                 )}
                 <button
                     className="action-btn confirm"
                     onClick={handleConfirm}
-                    disabled={currentDarts.length === 0}
+                    disabled={currentDarts.length === 0 || disabled}
                 >
                     Confirm ({currentDarts.length}/3)
                 </button>

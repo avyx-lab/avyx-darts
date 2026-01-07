@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePlayerStore } from '../../stores/playerStore';
 import { useGameStore } from '../../stores/gameStore';
 import { Card, CardBody, Button } from '@avyx/core';
-import { Target, Play, BarChart2, Users, Clock } from 'lucide-react';
+import { Target, Play, BarChart2, Users } from 'lucide-react';
 import './HomePage.css';
 
 export function HomePage() {

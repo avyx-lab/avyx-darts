@@ -1,0 +1,221 @@
+.player-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    border-radius: 12px;
+    overflow: hidden;
+    min-width: 280px;
+    max-width: 350px;
+    height: 100%;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.player-panel.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.player-panel-left {
+    border-radius: 0 12px 12px 0;
+}
+
+.player-panel-right {
+    border-radius: 12px 0 0 12px;
+}
+
+/* Header */
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: var(--color-surface-hover);
+    position: relative;
+}
+
+.starter-marker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-primary);
+}
+
+.panel-avatar {
+    font-size: 1.5rem;
+}
+
+.panel-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-text);
+}
+
+.panel-avg {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+/* Score */
+.panel-score {
+    padding: 20px 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.score-main {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
+}
+
+.score-value {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.score-pending {
+    font-size: 1.25rem;
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.score-checkout {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--color-primary);
+    font-weight: 500;
+}
+
+/* Stats */
+.panel-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 12px 16px;
+    background: var(--color-bg-subtle);
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.stat-label {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+/* History */
+.panel-history {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.history-header {
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+.no-throws {
+    padding: 16px;
+    text-align: center;
+    color: var(--color-text-muted);
+}
+
+.history-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    transition: background 0.15s;
+}
+
+.history-row:hover {
+    background: var(--color-surface-hover);
+}
+
+.history-row.bust {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.history-row.checkout {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.row-number {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+    min-width: 20px;
+}
+
+.row-score-start {
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 36px;
+    color: var(--color-text-subtle);
+}
+
+.row-total {
+    font-size: 1rem;
+    font-weight: 700;
+    min-width: 36px;
+    color: var(--color-text);
+}
+
+.row-darts {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.dart-chip {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    background: var(--color-bg-subtle);
+    border-radius: 4px;
+    color: var(--color-text-subtle);
+}
+
+/* Turn indicator - hidden since panel border shows active player */
+.turn-indicator {
+    display: none;
+}
+
+/* Responsive - hide on mobile, use different layout */
+@media (max-width: 900px) {
+    .player-panel {
+        display: none;
+    }
+}

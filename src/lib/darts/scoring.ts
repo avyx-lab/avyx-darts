@@ -1,4 +1,4 @@
-import type { Dart, ThrowRound, OutMode, InMode } from '../types/darts';
+import type { Dart, OutMode, InMode } from '../../types/darts';
 
 // ==========================================
 // SCORING UTILITIES

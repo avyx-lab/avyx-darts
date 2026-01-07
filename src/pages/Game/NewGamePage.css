@@ -113,6 +113,62 @@
     gap: 12px;
 }
 
+.player-actions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.add-bot-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bot-difficulty-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 4px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+}
+
+.bot-diff-btn {
+    padding: 8px 12px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.1s;
+}
+
+.bot-diff-btn:hover {
+    background: var(--color-surface-hover);
+}
+
+.bot-card {
+    border-style: dashed !important;
+    background: var(--color-bg-subtle);
+}
+
+.bot-card.selected {
+    background: rgba(34, 197, 94, 0.05);
+    border-style: solid !important;
+}
+
 .player-search {
     position: relative;
     margin-bottom: 16px;
@@ -153,6 +209,58 @@
     padding: 24px;
     text-align: center;
     color: var(--color-text-subtle);
+}
+
+/* Bot Card */
+.bot-card-wrapper {
+    position: relative;
+}
+
+.bot-card-wrapper .bot-card {
+    border: 2px dashed var(--color-border);
+}
+
+.bot-card-wrapper.selected .bot-card {
+    border-color: var(--color-primary);
+    border-style: solid;
+}
+
+.bot-difficulty-popup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bot-diff-btn {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    text-align: left;
+    background: transparent;
+    color: var(--color-text);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.bot-diff-btn:hover {
+    background: var(--color-surface-hover);
+}
+
+.bot-diff-btn.active {
+    background: var(--color-primary);
+    color: white;
 }
 
 .start-section {

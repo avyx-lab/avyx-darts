@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { ThemeProvider } from '@avyx/core'
+// @ts-ignore
 import '@avyx/core/styles'
 import './pages.css'
 import App from './App'

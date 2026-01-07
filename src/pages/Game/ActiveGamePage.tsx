@@ -7,10 +7,12 @@ import { useTranslation } from '../../lib/i18n';
 import { Scoreboard } from '../../components/Scoreboard/Scoreboard';
 import { NumPad } from '../../components/NumPad/NumPad';
 import { DartInput } from '../../components/DartInput/DartInput';
+import { PlayerPanel } from '../../components/PlayerPanel/PlayerPanel';
 import { Button, Card, CardBody } from '@avyx/core';
 import { X, AlertTriangle } from 'lucide-react';
 import type { Dart } from '../../types/darts';
 import { getCheckoutSuggestion } from '../../lib/darts/checkouts';
+import { calculateBotTurn } from '../../lib/darts/bot';
 import './ActiveGamePage.css';
 
 export function ActiveGamePage() {
@@ -24,6 +26,8 @@ export function ActiveGamePage() {
     const [celebratingPlayerId, setCelebratingPlayerId] = useState<string | undefined>();
     const [celebrationType, setCelebrationType] = useState<'180' | 'leg-win' | 'set-win' | 'game-win' | undefined>();
     const [showAbandonModal, setShowAbandonModal] = useState(false);
+
+
 
     const [isWideScreen, setIsWideScreen] = useState(window.innerWidth > 900);
 
@@ -100,6 +104,52 @@ export function ActiveGamePage() {
         setCelebratingPlayerId(playerId);
         setCelebrationType(type);
     };
+
+
+    // History Modal State
+    const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null);
+
+    // Bot Logic
+    const [isBotThrowing, setIsBotThrowing] = useState(false);
+
+    useEffect(() => {
+        if (!currentGame || currentGame.status !== 'active') return;
+
+        const currentPlayerId = currentGame.config.playerIds[currentGame.currentPlayerIndex];
+        const playerType = currentGame.config.playerTypes?.[currentPlayerId];
+        const difficulty = currentGame.config.botDifficulties?.[currentPlayerId];
+
+        if (playerType === 'computer' && difficulty) {
+            setIsBotThrowing(true);
+
+            // Simulate "thinking" and throwing time
+            const timer = setTimeout(() => {
+                const currentLeg = currentGame.sets[currentGame.currentSetIndex].legs[currentGame.currentLegIndex];
+                const score = currentLeg.scores[currentPlayerId];
+
+                const darts = calculateBotTurn(difficulty, score, currentGame.config.outMode);
+
+                const total = darts.reduce((sum: number, d: Dart) => sum + d.value, 0);
+
+                if (total === 180) {
+                    triggerCelebration(currentPlayerId, '180');
+                }
+                if (score === total) {
+                    triggerCelebration(currentPlayerId, 'leg-win');
+                }
+
+                recordThrow(darts);
+                setIsBotThrowing(false);
+            }, 1000 + Math.random() * 1000); // 1-2s delay
+
+            return () => clearTimeout(timer);
+        } else {
+            setIsBotThrowing(false);
+        }
+    }, [currentGame?.currentPlayerIndex, currentGame?.status, currentGame?.currentLegIndex, currentGame?.currentSetIndex]); // Dependencies for bot turn
+
+    // Disable input if bot is throwing
+    const inputDisabled = isBotThrowing;
 
     const handleScore = useCallback((score: number) => {
         if (score === 180 && currentPlayerId) {
@@ -214,58 +264,205 @@ export function ActiveGamePage() {
             )}
 
             <div className={`game-layout game-layout-${effectiveLayout}`}>
-                <div className="game-scoreboard">
-                    <Scoreboard
-                        game={currentGame}
-                        dynamicCheckout={dynamicCheckout?.darts}
-                        pendingScore={pendingDarts.reduce((sum, d) => sum + d.value, 0)}
-                        celebratingPlayerId={celebratingPlayerId}
-                        celebrationType={celebrationType}
-                    />
-                </div>
+                {/* Left Panel (Player 1) */}
+                {currentGame.config.playerIds.length >= 1 && (() => {
+                    const playerId = currentGame.config.playerIds[0];
+                    const currentLeg = currentGame.sets[currentGame.currentSetIndex].legs[currentGame.currentLegIndex];
+                    const currentSet = currentGame.sets[currentGame.currentSetIndex];
+                    const playerRounds = currentLeg.history.filter(r => r.playerId === playerId);
+                    const score = currentLeg.scores[playerId] || 0;
+                    const legWins = currentSet.legWins[playerId] || 0;
+                    const setWins = currentGame.setWins[playerId] || 0;
+                    const isCurrentPlayer = currentPlayerId === playerId;
+                    const isStarter = currentLeg.startingPlayerId === playerId;
 
-                <div className="game-input-wrapper">
-                    <div className="game-controls">
-                        <div className="input-mode-toggle">
+                    let player = players.find(p => p.id === playerId);
+                    if (!player && playerId === 'bot') {
+                        player = { id: 'bot', name: 'Computer', avatar: '🤖', preferredDouble: 20, createdAt: '', stats: { gamesPlayed: 0, gamesWon: 0, legsWon: 0, highestCheckout: 0, average: 0, checkoutPercentage: 0, total180s: 0 } };
+                    }
+
+                    const displayScore = isCurrentPlayer && pendingDarts.length > 0
+                        ? score - pendingDarts.reduce((sum, d) => sum + d.value, 0)
+                        : score;
+                    const checkout = displayScore <= 170 && displayScore >= 2
+                        ? getCheckoutSuggestion(displayScore, player?.preferredDouble)
+                        : null;
+
+                    return player ? (
+                        <PlayerPanel
+                            player={player}
+                            score={score}
+                            legWins={legWins}
+                            setWins={setWins}
+                            rounds={playerRounds}
+                            isCurrentPlayer={isCurrentPlayer}
+                            isStarter={isStarter}
+                            pendingScore={isCurrentPlayer ? pendingDarts.reduce((sum, d) => sum + d.value, 0) : 0}
+                            checkout={checkout?.darts}
+                            side="left"
+                            setsToWin={currentGame.config.setsToWin}
+                        />
+                    ) : null;
+                })()}
+
+                {/* Center: Input only */}
+                <div className="game-center">
+                    {/* Game info header */}
+                    <div className="game-info-bar">
+                        <span className="game-mode">{currentGame.config.startScore}</span>
+                        <span className="game-status">Leg {currentGame.currentLegIndex + 1} {currentGame.config.setsToWin ? `| Set ${currentGame.currentSetIndex + 1}` : ''}</span>
+                        <span className="game-target">First to {currentGame.config.legsToWin} Legs</span>
+                    </div>
+
+                    {/* Mobile-only scoreboard */}
+                    {effectiveLayout === 'stacked' && (
+                        <div className="game-scoreboard">
+                            <Scoreboard
+                                game={currentGame}
+                                dynamicCheckout={dynamicCheckout?.darts}
+                                pendingScore={pendingDarts.reduce((sum, d) => sum + d.value, 0)}
+                                celebratingPlayerId={celebratingPlayerId}
+                                celebrationType={celebrationType}
+                                onPlayerClick={(pid) => setHistoryPlayerId(pid)}
+                            />
+                        </div>
+                    )}
+
+                    <div className="game-input-wrapper">
+                        <div className="game-controls">
+                            <div className="input-mode-toggle">
+                                <button
+                                    className={`mode-btn ${inputMode === 'round' ? 'active' : ''}`}
+                                    onClick={() => setInputMode('round')}
+                                >
+                                    {t('game.roundScore')}
+                                </button>
+                                <button
+                                    className={`mode-btn ${inputMode === 'dart' ? 'active' : ''}`}
+                                    onClick={() => setInputMode('dart')}
+                                >
+                                    {t('game.perDart')}
+                                </button>
+                            </div>
                             <button
-                                className={`mode-btn ${inputMode === 'round' ? 'active' : ''}`}
-                                onClick={() => setInputMode('round')}
+                                className="btn-abandon"
+                                onClick={() => setShowAbandonModal(true)}
                             >
-                                {t('game.roundScore')}
-                            </button>
-                            <button
-                                className={`mode-btn ${inputMode === 'dart' ? 'active' : ''}`}
-                                onClick={() => setInputMode('dart')}
-                            >
-                                {t('game.perDart')}
+                                <X size={16} />
+                                {t('game.abandon')}
                             </button>
                         </div>
-                        <button
-                            className="btn-abandon"
-                            onClick={() => setShowAbandonModal(true)}
-                        >
-                            <X size={16} />
-                            {t('game.abandon')}
-                        </button>
-                    </div>
 
-                    <div className="game-input">
-                        {inputMode === 'round' ? (
-                            <NumPad
-                                onScore={handleScore}
-                                onUndo={undo}
-                                maxScore={180}
-                            />
-                        ) : (
-                            <DartInput
-                                onConfirm={handleDarts}
-                                onUndo={undo}
-                                maxDarts={3}
-                                onDartChange={handleDartInput}
-                            />
-                        )}
+                        <div className="game-input">
+                            {isBotThrowing && (
+                                <div className="bot-overlay">
+                                    <div className="bot-thinking">
+                                        <span>🤖 Bot is throwing...</span>
+                                        <div className="loading-dots">
+                                            <span>.</span><span>.</span><span>.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            {/* Right: Player 2 (Desktop) - already handled above */}
+
+                            {/* History Modal (Mobile) */}
+                            {historyPlayerId && (
+                                <div className="history-modal-overlay" onClick={() => setHistoryPlayerId(null)}>
+                                    <div className="history-modal-content" onClick={(e) => e.stopPropagation()}>
+                                        <button className="history-modal-close" onClick={() => setHistoryPlayerId(null)}>
+                                            <X size={24} />
+                                        </button>
+                                        {(() => {
+                                            // Calculate player data for modal
+                                            const player = players.find(p => p.id === historyPlayerId) || { id: 'bot', name: 'Computer', avatar: '🤖', preferredDouble: 20, createdAt: '', stats: {} as any };
+                                            const leg = currentGame.sets[currentGame.currentSetIndex].legs[currentGame.currentLegIndex];
+                                            const score = leg.scores[historyPlayerId] || 0;
+                                            const legWins = currentGame.sets[currentGame.currentSetIndex].legWins[historyPlayerId] || 0;
+                                            const setWins = currentGame.setWins[historyPlayerId] || 0;
+                                            const rounds = leg.history.filter(r => r.playerId === historyPlayerId);
+                                            const isCurrentPlayer = currentGame.config.playerIds[currentGame.currentPlayerIndex] === historyPlayerId;
+                                            const isStarter = leg.startingPlayerId === historyPlayerId;
+
+                                            return (
+                                                <PlayerPanel
+                                                    player={player}
+                                                    score={score}
+                                                    legWins={legWins}
+                                                    setWins={setWins}
+                                                    rounds={rounds}
+                                                    isCurrentPlayer={isCurrentPlayer}
+                                                    isStarter={isStarter}
+                                                    pendingScore={isCurrentPlayer ? pendingDarts.reduce((sum, d) => sum + d.value, 0) : 0}
+                                                    checkout={isCurrentPlayer && dynamicCheckout ? dynamicCheckout.darts : undefined}
+                                                    side="left" // Reuse left style, or neutralize in CSS
+                                                    setsToWin={currentGame.config.setsToWin}
+                                                />
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            )}
+                            {inputMode === 'round' ? (
+                                <NumPad
+                                    onScore={handleScore}
+                                    onUndo={undo}
+                                    maxScore={180}
+                                    disabled={inputDisabled}
+                                />
+                            ) : (
+                                <DartInput
+                                    onConfirm={handleDarts}
+                                    onUndo={undo}
+                                    maxDarts={3}
+                                    onDartChange={handleDartInput}
+                                    disabled={inputDisabled}
+                                />
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {/* Right Panel (Player 2) */}
+                {currentGame.config.playerIds.length >= 2 && (() => {
+                    const playerId = currentGame.config.playerIds[1];
+                    const currentLeg = currentGame.sets[currentGame.currentSetIndex].legs[currentGame.currentLegIndex];
+                    const currentSet = currentGame.sets[currentGame.currentSetIndex];
+                    const playerRounds = currentLeg.history.filter(r => r.playerId === playerId);
+                    const score = currentLeg.scores[playerId] || 0;
+                    const legWins = currentSet.legWins[playerId] || 0;
+                    const setWins = currentGame.setWins[playerId] || 0;
+                    const isCurrentPlayer = currentPlayerId === playerId;
+                    const isStarter = currentLeg.startingPlayerId === playerId;
+
+                    let player = players.find(p => p.id === playerId);
+                    if (!player && playerId === 'bot') {
+                        player = { id: 'bot', name: 'Computer', avatar: '🤖', preferredDouble: 20, createdAt: '', stats: { gamesPlayed: 0, gamesWon: 0, legsWon: 0, highestCheckout: 0, average: 0, checkoutPercentage: 0, total180s: 0 } };
+                    }
+
+                    const displayScore = isCurrentPlayer && pendingDarts.length > 0
+                        ? score - pendingDarts.reduce((sum, d) => sum + d.value, 0)
+                        : score;
+                    const checkout = displayScore <= 170 && displayScore >= 2
+                        ? getCheckoutSuggestion(displayScore, player?.preferredDouble)
+                        : null;
+
+                    return player ? (
+                        <PlayerPanel
+                            player={player}
+                            score={score}
+                            legWins={legWins}
+                            setWins={setWins}
+                            rounds={playerRounds}
+                            isCurrentPlayer={isCurrentPlayer}
+                            isStarter={isStarter}
+                            pendingScore={isCurrentPlayer ? pendingDarts.reduce((sum, d) => sum + d.value, 0) : 0}
+                            checkout={checkout?.darts}
+                            side="right"
+                            setsToWin={currentGame.config.setsToWin}
+                        />
+                    ) : null;
+                })()}
             </div>
         </div>
     );

@@ -36,6 +36,7 @@ export interface ThrowRound {
     darts: Dart[];           // 1-3 darts
     total: number;           // Sum of all darts
     remainingAfter: number;  // Score after this throw
+    scoreAtStart: number;    // Score before this throw
     isCheckout: boolean;
     isBust: boolean;
     timestamp: string;
@@ -47,13 +48,20 @@ export type InMode = 'straight' | 'double';
 export type OutMode = 'single' | 'double';
 export type GameStatus = 'setup' | 'active' | 'finished';
 
+// Bot Types
+export type BotDifficulty = 'easy' | 'medium' | 'hard' | 'littler';
+export type PlayerType = 'human' | 'computer';
+
 export interface X01GameConfig {
     startScore: StartScore;
     inMode: InMode;
     outMode: OutMode;
-    legsToWin: number;       // First to X legs
-    setsToWin?: number;      // Optional: First to X sets
+    legsToWin: number;
+    setsToWin?: number;
     playerIds: string[];
+    // Bot configurations
+    playerTypes?: Record<string, PlayerType>; // playerId -> type
+    botDifficulties?: Record<string, BotDifficulty>; // playerId -> difficulty (if computer)
 }
 
 // --- GAME STATE ---
@@ -62,6 +70,7 @@ export interface LegState {
     hasStarted: Record<string, boolean>; // For double-in tracking
     history: ThrowRound[];
     winner?: string;
+    startingPlayerId: string; // Who started this leg
 }
 
 export interface SetState {

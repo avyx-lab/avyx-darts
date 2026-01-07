@@ -38,7 +38,7 @@ interface GameStore {
 
 const generateId = () => crypto.randomUUID();
 
-function createEmptyLeg(playerIds: string[], startScore: number): LegState {
+function createEmptyLeg(playerIds: string[], startScore: number, startingPlayerId: string): LegState {
     const scores: Record<string, number> = {};
     const hasStarted: Record<string, boolean> = {};
 
@@ -52,12 +52,13 @@ function createEmptyLeg(playerIds: string[], startScore: number): LegState {
         hasStarted,
         history: [],
         winner: undefined,
+        startingPlayerId,
     };
 }
 
-function createEmptySet(playerIds: string[], startScore: number): SetState {
+function createEmptySet(playerIds: string[], startScore: number, startingPlayerId: string): SetState {
     return {
-        legs: [createEmptyLeg(playerIds, startScore)],
+        legs: [createEmptyLeg(playerIds, startScore, startingPlayerId)],
         legWins: Object.fromEntries(playerIds.map((id) => [id, 0])),
         winner: undefined,
     };
@@ -77,7 +78,7 @@ export const useGameStore = create<GameStore>()(
                     currentPlayerIndex: 0,
                     currentSetIndex: 0,
                     currentLegIndex: 0,
-                    sets: [createEmptySet(config.playerIds, config.startScore)],
+                    sets: [createEmptySet(config.playerIds, config.startScore, config.playerIds[0])],
                     setWins: Object.fromEntries(config.playerIds.map((id) => [id, 0])),
                     winner: undefined,
                     startedAt: new Date().toISOString(),
@@ -153,6 +154,7 @@ export const useGameStore = create<GameStore>()(
                     darts,
                     total: thrownScore,
                     remainingAfter,
+                    scoreAtStart: remainingBefore,
                     isCheckout,
                     isBust: bust,
                     timestamp: new Date().toISOString(),
@@ -203,25 +205,34 @@ export const useGameStore = create<GameStore>()(
                             gameWinner = playerId;
                             gameStatus = 'finished';
                         } else {
-                            // Start new set
+                            // Start new set - alternate starter
                             newSetIndex++;
                             newLegIndex = 0;
+                            const previousStarter = currentLeg.startingPlayerId;
+                            const previousStarterIndex = config.playerIds.indexOf(previousStarter);
+                            const nextStarterIndex = (previousStarterIndex + 1) % config.playerIds.length;
+                            const nextStarter = config.playerIds[nextStarterIndex];
+
                             newSets = [...newSets];
                             newSets[currentSetIndex] = { ...newSet, legWins: newLegWins };
-                            newSets.push(createEmptySet(config.playerIds, config.startScore));
+                            newSets.push(createEmptySet(config.playerIds, config.startScore, nextStarter));
+                            newPlayerIndex = nextStarterIndex;
                         }
                     } else {
-                        // Start new leg within same set
+                        // Start new leg within same set - alternate starter
                         newLegIndex++;
+                        const previousStarter = currentLeg.startingPlayerId;
+                        const previousStarterIndex = config.playerIds.indexOf(previousStarter);
+                        const nextStarterIndex = (previousStarterIndex + 1) % config.playerIds.length;
+                        const nextStarter = config.playerIds[nextStarterIndex];
+
                         newSet.legs = [...newSet.legs];
                         newSet.legs[currentLegIndex] = newLeg;
-                        newSet.legs.push(createEmptyLeg(config.playerIds, config.startScore));
+                        newSet.legs.push(createEmptyLeg(config.playerIds, config.startScore, nextStarter));
                         newSet.legWins = newLegWins;
                         newSets[currentSetIndex] = newSet;
+                        newPlayerIndex = nextStarterIndex;
                     }
-
-                    // Reset player index to first player for new leg
-                    newPlayerIndex = 0;
                 } else {
                     // Just update the current leg
                     newSet.legs = [...newSet.legs];
