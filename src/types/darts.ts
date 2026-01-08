@@ -109,6 +109,21 @@ export interface CheckoutPath {
 }
 
 // --- GAME HISTORY ---
+export interface GamePlayerStats {
+    average: number;           // 3-dart average for this game
+    checkout: number | null;   // Highest checkout (if any)
+    total180s: number;         // 180s scored in this game
+    total140Plus: number;      // 140-179 scored
+    total120Plus: number;      // 120-139 scored
+    total100Plus: number;      // 100-119 scored
+    highestCheckout: number;   // Highest checkout value
+    checkoutQuote: number;     // Checkout percentage (0-100)
+    legsWon: number;
+    setsWon: number;
+    totalPoints: number;       // Total points scored
+    dartsThrown: number;       // Total darts thrown
+}
+
 export interface GameSummary {
     id: string;
     gameType: 'x01';
@@ -117,4 +132,13 @@ export interface GameSummary {
     winnerId?: string;
     startedAt: string;
     finishedAt: string;
+    // Detailed stats per player for this game
+    playerStats?: Record<string, GamePlayerStats>;
+    // All throw rounds for detailed history replay
+    rounds?: ThrowRound[];
+    // Explicit leg structure for history
+    legs?: {
+        winner?: string;
+        rounds: ThrowRound[];
+    }[];
 }

@@ -132,12 +132,6 @@ export function PlayerCard({
                     )}
                 </div>
             )}
-
-            {selectable && selected && (
-                <div className="selected-indicator">
-                    <Check size={20} />
-                </div>
-            )}
         </div>
     );
 }

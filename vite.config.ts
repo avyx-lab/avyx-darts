@@ -6,6 +6,7 @@ export default defineConfig({
     plugins: [react()],
     base: './',
     resolve: {
+        dedupe: ['react', 'react-dom', 'react-router-dom'],
         alias: {
             '@avyx/core/styles': path.resolve(__dirname, '../00_avyx-core/src/ui/styles/main.css'),
             '@avyx/core': path.resolve(__dirname, '../00_avyx-core/src/index.ts'),

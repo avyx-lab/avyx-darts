@@ -6,6 +6,53 @@
     max-width: 320px;
 }
 
+/* Mobile: Ultra-compact numpad to prevent scrolling */
+@media (max-width: 768px) {
+    .numpad {
+        max-width: 100%;
+        padding: 6px;
+        border-radius: 8px;
+    }
+
+    .numpad-display {
+        padding: 4px 8px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+    }
+
+    .numpad-value {
+        font-size: 1.3rem;
+    }
+
+    .quick-scores {
+        margin-bottom: 4px;
+        gap: 3px;
+    }
+
+    .quick-score-btn {
+        padding: 4px 2px;
+        font-size: 0.7rem;
+        min-width: 36px;
+    }
+
+    .numpad-grid {
+        gap: 3px;
+        margin-bottom: 4px;
+    }
+
+    .numpad-btn {
+        padding: 8px 6px;
+        font-size: 1rem;
+        border-radius: 6px;
+    }
+
+    .confirm-btn {
+        padding: 8px;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+}
+
 .numpad-display {
     display: flex;
     align-items: center;

@@ -30,7 +30,7 @@ export function NewGamePage() {
     // Single Bot (not multiple)
     const [botSelected, setBotSelected] = useState(false);
     const [botDifficulty, setBotDifficulty] = useState<BotDifficulty>('medium');
-    const [showBotDifficultyMenu, setShowBotDifficultyMenu] = useState(false);
+
 
     const [playerSearch, setPlayerSearch] = useState('');
 
@@ -70,30 +70,8 @@ export function NewGamePage() {
         return allAvailablePlayers.find(p => p.id === id);
     };
 
-    const handleBotClick = () => {
-        if (botSelected) {
-            // If already selected, show difficulty menu to change
-            setShowBotDifficultyMenu(!showBotDifficultyMenu);
-        } else {
-            // First click shows difficulty menu
-            setShowBotDifficultyMenu(true);
-        }
-    };
-
-    const selectBotDifficulty = (diff: BotDifficulty) => {
-        setBotDifficulty(diff);
-        setBotSelected(true);
-        setShowBotDifficultyMenu(false);
-
-        // Add bot to selection if not already there
-        if (!selectedPlayerIds.includes(BOT_ID)) {
-            setSelectedPlayerIds(prev => [...prev, BOT_ID]);
-        }
-    };
-
     const deselectBot = () => {
         setBotSelected(false);
-        setShowBotDifficultyMenu(false);
         setSelectedPlayerIds(prev => prev.filter(id => id !== BOT_ID));
         if (startingPlayerId === BOT_ID) setStartingPlayerId(undefined);
     };
@@ -103,7 +81,8 @@ export function NewGamePage() {
             if (botSelected) {
                 deselectBot();
             } else {
-                handleBotClick();
+                setBotSelected(true);
+                setSelectedPlayerIds(prev => [...prev, BOT_ID]);
             }
             return;
         }
@@ -306,34 +285,41 @@ export function NewGamePage() {
                                         />
                                     ))}
 
-                                    {/* Bot card - always shown as a separate dummy */}
-                                    <div className={`bot-card-wrapper ${botSelected ? 'selected' : ''}`}>
-                                        <PlayerCard
-                                            player={{
-                                                ...botPlayer,
-                                                name: botSelected ? `Computer (${botDifficulty})` : 'Computer'
-                                            }}
-                                            selectable
-                                            selected={botSelected}
-                                            onSelect={handleBotClick}
-                                            className="bot-card"
-                                        />
-                                        {showBotDifficultyMenu && (
-                                            <div className="bot-difficulty-popup">
-                                                {(['easy', 'medium', 'hard', 'littler'] as BotDifficulty[]).map((diff) => (
-                                                    <button
-                                                        key={diff}
-                                                        className={`bot-diff-btn ${botDifficulty === diff ? 'active' : ''}`}
-                                                        onClick={() => selectBotDifficulty(diff)}
-                                                    >
-                                                        {diff === 'easy' && '🐣 Easy'}
-                                                        {diff === 'medium' && '🎯 Medium'}
-                                                        {diff === 'hard' && '🤖 Hard'}
-                                                        {diff === 'littler' && '🏆 Littler'}
-                                                    </button>
-                                                ))}
+                                    {/* Bot card - custom layout with inline difficulty selector */}
+                                    <div
+                                        className={`player-card selectable ${botSelected ? 'selected' : ''} bot-card`}
+                                        onClick={() => {
+                                            if (!botSelected) {
+                                                setBotSelected(true);
+                                                setSelectedPlayerIds(prev => [...prev, BOT_ID]);
+                                            } else {
+                                                deselectBot();
+                                            }
+                                        }}
+                                    >
+                                        <div className="player-avatar-large">{botPlayer.avatar}</div>
+
+                                        <div className="player-details">
+                                            <span className="player-name-large">Computer</span>
+                                            <div className="difficulty-selector" onClick={(e) => e.stopPropagation()}>
+                                                <label>Difficulty:</label>
+                                                <select
+                                                    value={botDifficulty}
+                                                    onChange={(e) => {
+                                                        setBotDifficulty(e.target.value as BotDifficulty);
+                                                        if (!botSelected) {
+                                                            setBotSelected(true);
+                                                            setSelectedPlayerIds(prev => [...prev, BOT_ID]);
+                                                        }
+                                                    }}
+                                                >
+                                                    <option value="easy">🐣 Easy</option>
+                                                    <option value="medium">🎯 Medium</option>
+                                                    <option value="hard">🤖 Hard</option>
+                                                    <option value="littler">🏆 Littler</option>
+                                                </select>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             </>

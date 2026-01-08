@@ -2,9 +2,11 @@ import { useDartsSettingsStore } from '../../stores/settingsStore';
 import { useTheme } from '@avyx/core';
 import { Card, CardBody } from '@avyx/core';
 import { Monitor, Moon, Sun, Target, LayoutGrid, Globe } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import './SettingsPage.css';
 
 export function SettingsPage() {
+    const isNative = Capacitor.isNativePlatform();
     const {
         inputMode, setInputMode,
         showDynamicCheckout, setShowDynamicCheckout,
@@ -130,47 +132,49 @@ export function SettingsPage() {
                 </Card>
             </section>
 
-            {/* Display Settings */}
-            <section className="settings-section">
-                <h2><LayoutGrid size={18} /> Display Settings</h2>
+            {/* Display Settings - Web Only */}
+            {!isNative && (
+                <section className="settings-section">
+                    <h2><LayoutGrid size={18} /> Display Settings</h2>
 
-                <Card>
-                    <CardBody>
-                        <div className="setting-row">
-                            <div className="setting-info">
-                                <h3>Game Layout</h3>
-                                <p>Position of scoreboard and input panel</p>
+                    <Card>
+                        <CardBody>
+                            <div className="setting-row">
+                                <div className="setting-info">
+                                    <h3>Game Layout</h3>
+                                    <p>Position of scoreboard and input panel</p>
+                                </div>
+                                <div className="setting-options">
+                                    <button
+                                        className={`option-btn ${layoutMode === 'auto' ? 'active' : ''}`}
+                                        onClick={() => setLayoutMode('auto')}
+                                    >
+                                        Auto
+                                    </button>
+                                    <button
+                                        className={`option-btn ${layoutMode === 'stacked' ? 'active' : ''}`}
+                                        onClick={() => setLayoutMode('stacked')}
+                                    >
+                                        Stacked
+                                    </button>
+                                    <button
+                                        className={`option-btn ${layoutMode === 'side-by-side' ? 'active' : ''}`}
+                                        onClick={() => setLayoutMode('side-by-side')}
+                                    >
+                                        Side by Side
+                                    </button>
+                                </div>
                             </div>
-                            <div className="setting-options">
-                                <button
-                                    className={`option-btn ${layoutMode === 'auto' ? 'active' : ''}`}
-                                    onClick={() => setLayoutMode('auto')}
-                                >
-                                    Auto
-                                </button>
-                                <button
-                                    className={`option-btn ${layoutMode === 'stacked' ? 'active' : ''}`}
-                                    onClick={() => setLayoutMode('stacked')}
-                                >
-                                    Stacked
-                                </button>
-                                <button
-                                    className={`option-btn ${layoutMode === 'side-by-side' ? 'active' : ''}`}
-                                    onClick={() => setLayoutMode('side-by-side')}
-                                >
-                                    Side by Side
-                                </button>
-                            </div>
-                        </div>
 
-                        <div className="setting-description">
-                            <p><strong>Auto:</strong> Stacked on mobile/portrait, side-by-side on desktop/landscape.</p>
-                            <p><strong>Stacked:</strong> Scoreboard above input (fits on one screen).</p>
-                            <p><strong>Side by Side:</strong> Scoreboard and input next to each other.</p>
-                        </div>
-                    </CardBody>
-                </Card>
-            </section>
+                            <div className="setting-description">
+                                <p><strong>Auto:</strong> Stacked on mobile/portrait, side-by-side on desktop/landscape.</p>
+                                <p><strong>Stacked:</strong> Scoreboard above input (fits on one screen).</p>
+                                <p><strong>Side by Side:</strong> Scoreboard and input next to each other.</p>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </section>
+            )}
         </div>
     );
 }

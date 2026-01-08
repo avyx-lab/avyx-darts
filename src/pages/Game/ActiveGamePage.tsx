@@ -18,7 +18,7 @@ import './ActiveGamePage.css';
 export function ActiveGamePage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const { currentGame, recordScore, recordThrow, undo, abandonGame } = useGameStore();
+    const { currentGame, recordScore, recordThrow, undo, abandonGame, endGame } = useGameStore();
     const { inputMode, setInputMode, showDynamicCheckout, layoutMode } = useDartsSettingsStore();
     const players = usePlayerStore((s) => s.players);
 
@@ -26,6 +26,7 @@ export function ActiveGamePage() {
     const [celebratingPlayerId, setCelebratingPlayerId] = useState<string | undefined>();
     const [celebrationType, setCelebrationType] = useState<'180' | 'leg-win' | 'set-win' | 'game-win' | undefined>();
     const [showAbandonModal, setShowAbandonModal] = useState(false);
+    const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null);
 
 
 
@@ -104,10 +105,6 @@ export function ActiveGamePage() {
         setCelebratingPlayerId(playerId);
         setCelebrationType(type);
     };
-
-
-    // History Modal State
-    const [historyPlayerId, setHistoryPlayerId] = useState<string | null>(null);
 
     // Bot Logic
     const [isBotThrowing, setIsBotThrowing] = useState(false);
@@ -207,6 +204,60 @@ export function ActiveGamePage() {
                 .sort(([, a], [, b]) => b - a)[0]?.[0];
         const winner = players.find(p => p.id === winnerId);
 
+        // Calculate extended stats for each player
+        const playerStats = currentGame.config.playerIds.map(playerId => {
+            let player = players.find(p => p.id === playerId);
+            if (!player && playerId === 'bot') {
+                player = { id: 'bot', name: 'Computer', avatar: '🤖', preferredDouble: 20, createdAt: '', stats: { gamesPlayed: 0, gamesWon: 0, legsWon: 0, highestCheckout: 0, average: 0, checkoutPercentage: 0, total180s: 0 } };
+            }
+
+            let totalPoints = 0;
+            let dartsThrown = 0;
+            let legsWon = 0;
+            let setsWon = currentGame.setWins[playerId] || 0;
+            let total100Plus = 0;
+            let total120Plus = 0;
+            let total140Plus = 0;
+            let total180s = 0;
+            let highestCheckout = 0;
+            let checkoutAttempts = 0;
+            let checkoutHits = 0;
+
+            currentGame.sets.forEach(setData => {
+                legsWon += setData.legWins[playerId] || 0;
+                setData.legs.forEach(leg => {
+                    leg.history
+                        .filter(round => round.playerId === playerId)
+                        .forEach(round => {
+                            totalPoints += round.total;
+                            dartsThrown += round.darts.length;
+
+                            if (round.total >= 100 && round.total < 120) total100Plus++;
+                            if (round.total >= 120 && round.total < 140) total120Plus++;
+                            if (round.total >= 140 && round.total < 180) total140Plus++;
+                            if (round.total === 180) total180s++;
+
+                            if (round.isCheckout && round.total > highestCheckout) {
+                                highestCheckout = round.total;
+                            }
+                            if (round.scoreAtStart <= 170) {
+                                checkoutAttempts++;
+                                if (round.isCheckout) checkoutHits++;
+                            }
+                        });
+                });
+            });
+
+            const average = dartsThrown > 0 ? (totalPoints / dartsThrown) * 3 : 0;
+            const checkoutQuote = checkoutAttempts > 0 ? ((checkoutHits / checkoutAttempts) * 100) : 0;
+            const isWinner = playerId === winnerId;
+
+            return {
+                playerId, player, dartsThrown, average, legsWon, setsWon, isWinner,
+                total100Plus, total120Plus, total140Plus, total180s, highestCheckout, checkoutQuote
+            };
+        });
+
         return (
             <div className="page-content game-finished">
                 <div className="winner-banner">
@@ -219,15 +270,197 @@ export function ActiveGamePage() {
                         </div>
                     )}
                 </div>
-                <Scoreboard game={currentGame} />
+
+                {/* Stats Comparison Table */}
+                <div className="stats-comparison-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th className="stat-label-col"></th>
+                                {playerStats.map(({ playerId, player, isWinner }) => (
+                                    <th
+                                        key={playerId}
+                                        className={`player-col ${isWinner ? 'winner' : ''}`}
+                                        onClick={() => setHistoryPlayerId(playerId)}
+                                    >
+                                        <span className="player-avatar">{player?.avatar || '🎯'}</span>
+                                        <span className="player-name">{player?.name || 'Unknown'}</span>
+                                        {isWinner && <span className="crown">👑</span>}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td className="stat-label">Darts</td>
+                                {playerStats.map(({ playerId, dartsThrown }) => (
+                                    <td key={playerId} className="stat-value">{dartsThrown}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">Average</td>
+                                {playerStats.map(({ playerId, average }) => (
+                                    <td key={playerId} className="stat-value highlight">{average.toFixed(1)}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">Legs</td>
+                                {playerStats.map(({ playerId, legsWon }) => (
+                                    <td key={playerId} className="stat-value">{legsWon}</td>
+                                ))}
+                            </tr>
+                            {currentGame.config.setsToWin && (
+                                <tr>
+                                    <td className="stat-label">Sets</td>
+                                    {playerStats.map(({ playerId, setsWon }) => (
+                                        <td key={playerId} className="stat-value">{setsWon}</td>
+                                    ))}
+                                </tr>
+                            )}
+                            <tr>
+                                <td className="stat-label">180s</td>
+                                {playerStats.map(({ playerId, total180s }) => (
+                                    <td key={playerId} className="stat-value">{total180s}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">140+</td>
+                                {playerStats.map(({ playerId, total140Plus }) => (
+                                    <td key={playerId} className="stat-value">{total140Plus}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">120+</td>
+                                {playerStats.map(({ playerId, total120Plus }) => (
+                                    <td key={playerId} className="stat-value">{total120Plus}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">100+</td>
+                                {playerStats.map(({ playerId, total100Plus }) => (
+                                    <td key={playerId} className="stat-value">{total100Plus}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">Best CO</td>
+                                {playerStats.map(({ playerId, highestCheckout }) => (
+                                    <td key={playerId} className="stat-value">{highestCheckout || '-'}</td>
+                                ))}
+                            </tr>
+                            <tr>
+                                <td className="stat-label">CO Quote</td>
+                                {playerStats.map(({ playerId, checkoutQuote }) => (
+                                    <td key={playerId} className="stat-value">{checkoutQuote > 0 ? `${checkoutQuote.toFixed(1)}%` : '-'}</td>
+                                ))}
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p className="table-hint">Tap a player to view their throw history</p>
+                </div>
+
                 <div className="finished-actions">
-                    <Button variant="primary" onClick={() => navigate('/game')}>
-                        New Game
+                    <Button variant="primary" onClick={() => {
+                        endGame(); // Save stats and clear game
+                        navigate('/game');
+                    }}>
+                        Finish & New Game
                     </Button>
-                    <Button variant="ghost" onClick={() => navigate('/home')}>
-                        Back to Home
+                    <Button variant="ghost" onClick={() => {
+                        endGame(); // Save stats and clear game
+                        navigate('/home');
+                    }}>
+                        Finish & Back to Home
                     </Button>
                 </div>
+
+                {/* History Modal - Just Legs */}
+                {historyPlayerId && (() => {
+                    const selectedPlayer = players.find(p => p.id === historyPlayerId)
+                        || (historyPlayerId === 'bot' ? { id: 'bot', name: 'Computer', avatar: '🤖' } : null);
+
+                    // Collect rounds grouped by leg
+                    const legData: Array<{
+                        setIndex: number;
+                        legIndex: number;
+                        rounds: typeof currentGame.sets[0]['legs'][0]['history'];
+                        winner: string | undefined;
+                    }> = [];
+
+                    currentGame.sets.forEach((setData, setIdx) => {
+                        setData.legs.forEach((leg, legIdx) => {
+                            const playerRoundsInLeg = leg.history.filter(r => r.playerId === historyPlayerId);
+                            if (playerRoundsInLeg.length > 0) {
+                                legData.push({
+                                    setIndex: setIdx,
+                                    legIndex: legIdx,
+                                    rounds: playerRoundsInLeg,
+                                    winner: leg.winner
+                                });
+                            }
+                        });
+                    });
+
+                    const formatDart = (dart: { segment: number; multiplier: number }) => {
+                        if (dart.segment === 25) return dart.multiplier === 2 ? 'D-Bull' : 'Bull';
+                        const prefix = dart.multiplier === 3 ? 'T' : dart.multiplier === 2 ? 'D' : 'S';
+                        return `${prefix}${dart.segment}`;
+                    };
+
+                    return (
+                        <div className="modal-overlay" onClick={() => setHistoryPlayerId(null)}>
+                            <Card className="history-modal" onClick={(e) => e.stopPropagation()}>
+                                <CardBody>
+                                    <div className="history-header">
+                                        <div className="history-player">
+                                            <span className="history-avatar">{selectedPlayer?.avatar}</span>
+                                            <span className="history-name">{selectedPlayer?.name} - Throw History</span>
+                                        </div>
+                                        <button className="close-btn" onClick={() => setHistoryPlayerId(null)}>
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    {/* Legs with Rounds */}
+                                    <div className="history-legs">
+                                        {legData.length === 0 ? (
+                                            <p className="no-rounds">No rounds played</p>
+                                        ) : (
+                                            legData.map(({ setIndex, legIndex, rounds, winner }) => (
+                                                <div key={`${setIndex}-${legIndex}`} className="leg-section">
+                                                    <div className="leg-header">
+                                                        <span className="leg-title">
+                                                            {currentGame.config.setsToWin ? `Set ${setIndex + 1} - ` : ''}
+                                                            Leg {legIndex + 1}
+                                                        </span>
+                                                        {winner === historyPlayerId && (
+                                                            <span className="leg-won-badge">✓ Won</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="leg-rounds">
+                                                        {rounds.map((round, idx) => (
+                                                            <div key={idx} className={`history-round ${round.isCheckout ? 'checkout' : ''} ${round.isBust ? 'bust' : ''}`}>
+                                                                <span className="round-number">#{idx + 1}</span>
+                                                                <span className="round-total">{round.total}</span>
+                                                                <span className="round-darts">
+                                                                    {round.darts.map((d, i) => (
+                                                                        <span key={i} className="dart-tag">{formatDart(d)}</span>
+                                                                    ))}
+                                                                </span>
+                                                                <span className="round-remaining">→ {round.remainingAfter}</span>
+                                                                {round.isCheckout && <span className="checkout-badge">✓</span>}
+                                                                {round.isBust && <span className="bust-badge">BUST</span>}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </div>
+                    );
+                })()}
             </div>
         );
     }

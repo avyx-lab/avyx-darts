@@ -49,7 +49,8 @@
     border-radius: 8px;
     position: relative;
     transition: all 0.2s;
-    overflow: hidden;
+    overflow: visible;
+    /* Changed from hidden to allow celebration overlay */
     flex-shrink: 0;
 }
 
@@ -302,4 +303,111 @@
     margin-top: 16px;
     font-size: 0.875rem;
     color: var(--color-text-subtle);
+}
+
+/* Mobile Compact Scoreboard - NO SCROLL */
+@media (max-width: 768px) {
+    .scoreboard {
+        padding: 4px;
+        height: auto;
+    }
+
+    .scoreboard-header {
+        display: none;
+    }
+
+    .scoreboard-players {
+        gap: 4px;
+    }
+
+    /* Clean row: [Player 80px] [Score flex] [Legs 55px] */
+    .player-score {
+        display: flex;
+        align-items: center;
+        padding: 8px 10px;
+        gap: 6px;
+        flex-wrap: nowrap;
+        overflow: visible;
+        /* Allow celebration overlay */
+    }
+
+    .player-info {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: 75px;
+        flex-shrink: 0;
+    }
+
+    .player-avatar {
+        font-size: 1rem;
+    }
+
+    .player-name {
+        font-size: 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Score area takes remaining space */
+    .score-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .main-score {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .current-score {
+        font-size: 1.6rem;
+    }
+
+    .pending-score {
+        font-size: 0.75rem;
+    }
+
+    .checkout-hint {
+        font-size: 0.65rem;
+        margin-top: 1px;
+        text-align: center;
+    }
+
+    /* Legs on right - fixed width */
+    .win-counts {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        width: 55px;
+        flex-shrink: 0;
+    }
+
+    .set-wins,
+    .leg-wins {
+        font-size: 0.6rem;
+        padding: 2px 5px;
+    }
+
+    .round-stats {
+        display: none;
+    }
+
+    .scoreboard-footer {
+        display: none;
+    }
+
+    .throw-indicator {
+        display: none;
+    }
+
+    .checkable-hint {
+        display: none;
+    }
 }

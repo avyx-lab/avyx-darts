@@ -6,6 +6,9 @@ import '@avyx/core/styles'
 import './pages.css'
 import App from './App'
 
+// Debug: Log mount
+console.log('Mounting React App...');
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <ThemeProvider>

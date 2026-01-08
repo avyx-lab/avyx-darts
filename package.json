@@ -10,10 +10,18 @@
         "preview": "vite preview",
         "electron:build": "esbuild electron/main.ts electron/preload.ts --bundle --platform=node --format=cjs --outdir=dist-electron --external:electron && echo '{\"type\":\"commonjs\"}' > dist-electron/package.json",
         "electron:dev": "npm run electron:build && concurrently -k \"cross-env BROWSER=none npm run dev\" \"wait-on tcp:5176 && cross-env VITE_DEV_SERVER_URL=http://localhost:5176 electron .\"",
-        "electron:pack": "npm run build && npm run electron:build && electron-builder"
+        "electron:pack": "npm run build && npm run electron:build && electron-builder",
+        "cap:sync": "cap sync",
+        "cap:ios": "cap open ios",
+        "cap:android": "cap open android"
     },
     "dependencies": {
         "@avyx/core": "file:../00_avyx-core",
+        "@capacitor-community/keep-awake": "^5.0.1",
+        "@capacitor/android": "^6.2.1",
+        "@capacitor/cli": "^6.2.1",
+        "@capacitor/core": "^6.2.1",
+        "@capacitor/ios": "^6.2.1",
         "clsx": "^2.1.1",
         "lucide-react": "^0.562.0",
         "react": "^19.2.0",

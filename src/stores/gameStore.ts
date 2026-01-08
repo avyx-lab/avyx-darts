@@ -7,7 +7,8 @@ import type {
     Dart,
     LegState,
     SetState,
-    GameSummary
+    GameSummary,
+    GamePlayerStats
 } from '../types/darts';
 import { calculateThrowTotal, isBust } from '../lib/darts/scoring';
 import { usePlayerStore } from './playerStore';
@@ -24,6 +25,7 @@ interface GameStore {
     startGame: (config: X01GameConfig) => void;
     endGame: () => void;
     abandonGame: () => void;
+    clearHistory: () => void;
 
     // Gameplay
     recordThrow: (darts: Dart[]) => void;
@@ -91,7 +93,90 @@ export const useGameStore = create<GameStore>()(
                 const { currentGame } = get();
                 if (!currentGame) return;
 
-                // Save to history
+                // Calculate detailed player stats from game history
+                const playerStats: Record<string, GamePlayerStats> = {};
+
+                currentGame.config.playerIds.forEach((playerId) => {
+                    let totalPoints = 0;
+                    let dartsThrown = 0;
+                    let total180s = 0;
+                    let total140Plus = 0;
+                    let total120Plus = 0;
+                    let total100Plus = 0;
+                    let highestCheckout = 0;
+                    let checkoutAttempts = 0;
+                    let checkoutHits = 0;
+                    let legsWon = 0;
+                    let setsWon = currentGame.setWins[playerId] || 0;
+
+                    // Iterate through all sets and legs
+                    currentGame.sets.forEach((setData) => {
+                        legsWon += setData.legWins[playerId] || 0;
+
+                        setData.legs.forEach((leg) => {
+                            leg.history
+                                .filter((round) => round.playerId === playerId)
+                                .forEach((round) => {
+                                    totalPoints += round.total;
+                                    dartsThrown += round.darts.length;
+
+                                    // Check specific scores
+                                    if (round.total === 180) total180s++;
+                                    else if (round.total >= 140) total140Plus++;
+                                    else if (round.total >= 120) total120Plus++;
+                                    else if (round.total >= 100) total100Plus++;
+
+                                    // Check for checkout
+                                    if (round.isCheckout && round.total > 0) {
+                                        if (round.total > highestCheckout) {
+                                            highestCheckout = round.total;
+                                        }
+                                    }
+
+                                    // Checkout stats
+                                    if (round.scoreAtStart <= 170) {
+                                        checkoutAttempts++;
+                                        if (round.isCheckout) checkoutHits++;
+                                    }
+                                });
+                        });
+                    });
+
+                    // Calculate 3-dart average
+                    const average = dartsThrown > 0 ? (totalPoints / dartsThrown) * 3 : 0;
+                    const checkoutQuote = checkoutAttempts > 0 ? (checkoutHits / checkoutAttempts) * 100 : 0;
+
+                    playerStats[playerId] = {
+                        average: Math.round(average * 100) / 100,
+                        checkout: highestCheckout === 0 ? null : highestCheckout,
+                        highestCheckout: highestCheckout,
+                        checkoutQuote: Math.round(checkoutQuote * 10) / 10,
+                        total180s,
+                        total140Plus,
+                        total120Plus,
+                        total100Plus,
+                        legsWon,
+                        setsWon,
+                        totalPoints,
+                        dartsThrown,
+                    };
+                });
+
+                // Collect all rounds from all sets and legs
+                const allRounds: ThrowRound[] = [];
+                const summaryLegs: { winner?: string; rounds: ThrowRound[] }[] = [];
+
+                currentGame.sets.forEach((setData) => {
+                    setData.legs.forEach((leg) => {
+                        allRounds.push(...leg.history);
+                        summaryLegs.push({
+                            winner: leg.winner,
+                            rounds: [...leg.history]
+                        });
+                    });
+                });
+
+                // Save to history with detailed stats
                 const summary: GameSummary = {
                     id: currentGame.id,
                     gameType: 'x01',
@@ -100,21 +185,44 @@ export const useGameStore = create<GameStore>()(
                     winnerId: currentGame.winner,
                     startedAt: currentGame.startedAt,
                     finishedAt: new Date().toISOString(),
+                    playerStats,
+                    rounds: allRounds,
+                    legs: summaryLegs,
                 };
 
-                // Update player stats
-                if (currentGame.winner) {
-                    const playerStore = usePlayerStore.getState();
-                    currentGame.config.playerIds.forEach((playerId) => {
-                        const player = playerStore.getPlayer(playerId);
-                        if (player) {
-                            playerStore.updateStats(playerId, {
-                                gamesPlayed: player.stats.gamesPlayed + 1,
-                                gamesWon: player.stats.gamesWon + (playerId === currentGame.winner ? 1 : 0),
-                            });
-                        }
-                    });
-                }
+                // Update player lifetime stats
+                const playerStore = usePlayerStore.getState();
+                currentGame.config.playerIds.forEach((playerId) => {
+                    const player = playerStore.getPlayer(playerId);
+                    if (player) {
+                        const gameStats = playerStats[playerId];
+                        const newGamesPlayed = player.stats.gamesPlayed + 1;
+                        const newGamesWon = player.stats.gamesWon + (playerId === currentGame.winner ? 1 : 0);
+                        const newLegsWon = player.stats.legsWon + gameStats.legsWon;
+                        const newTotal180s = player.stats.total180s + gameStats.total180s;
+
+                        // Update highest checkout
+                        const newHighestCheckout = gameStats.checkout !== null
+                            ? Math.max(player.stats.highestCheckout, gameStats.checkout)
+                            : player.stats.highestCheckout;
+
+                        // Calculate new lifetime average (weighted)
+                        // Simple approach: just use the latest game's impact
+                        const oldWeight = player.stats.gamesPlayed;
+                        const newAverage = oldWeight > 0
+                            ? ((player.stats.average * oldWeight) + gameStats.average) / (oldWeight + 1)
+                            : gameStats.average;
+
+                        playerStore.updateStats(playerId, {
+                            gamesPlayed: newGamesPlayed,
+                            gamesWon: newGamesWon,
+                            legsWon: newLegsWon,
+                            total180s: newTotal180s,
+                            highestCheckout: newHighestCheckout,
+                            average: Math.round(newAverage * 100) / 100,
+                        });
+                    }
+                });
 
                 set((state) => ({
                     currentGame: null,
@@ -124,6 +232,10 @@ export const useGameStore = create<GameStore>()(
 
             abandonGame: () => {
                 set({ currentGame: null });
+            },
+
+            clearHistory: () => {
+                set({ gameHistory: [] });
             },
 
             recordThrow: (darts) => {
@@ -380,7 +492,7 @@ export const useGameStore = create<GameStore>()(
             name: 'avyx-darts-game',
             partialize: (state) => ({
                 gameHistory: state.gameHistory,
-                // Don't persist currentGame - games are session-based
+                currentGame: state.currentGame, // Persist active game to survive app restart
             }),
         }
     )

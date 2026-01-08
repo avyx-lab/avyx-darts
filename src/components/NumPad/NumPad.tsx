@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { QUICK_SCORES } from '../../lib/darts/scoring';
-import { Delete, RotateCcw } from 'lucide-react';
+import { Delete } from 'lucide-react';
 import './NumPad.css';
 
 interface NumPadProps {
@@ -85,7 +85,7 @@ export function NumPad({ onScore, onUndo, maxScore = 180, disabled = false }: Nu
 
                 {onUndo && (
                     <button className="numpad-btn undo-btn" onClick={onUndo} disabled={disabled}>
-                        <RotateCcw size={20} />
+                        ↺
                     </button>
                 )}
 
