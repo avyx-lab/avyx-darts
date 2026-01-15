@@ -1,0 +1,73 @@
+# --- Abhängigkeiten & Libraries (Hauptursache für Abstürze) ---
+node_modules/
+venv/
+.venv/
+env/
+vendor/
+lib/
+libs/
+site-packages/
+
+# --- Build-Ordner & Kompilierte Dateien ---
+dist/
+build/
+out/
+.next/
+.nuxt/
+target/
+bin/
+obj/
+__pycache__/
+*.pyc
+
+# --- System & IDE Metadaten ---
+.git/
+.svn/
+.hg/
+.vscode/
+.idea/
+.DS_Store
+
+# --- Große Lock-Files ---
+# Die AI braucht package.json/pyproject.toml, aber nicht die riesigen Lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+poetry.lock
+Cargo.lock
+composer.lock
+
+# --- Logs & Temporäres ---
+*.log
+npm-debug.log
+yarn-error.log
+.cache/
+coverage/
+tmp/
+temp/
+
+# --- Datenbanken & Große Datensätze ---
+*.sqlite
+*.db
+*.sql
+*.csv
+*.tsv
+*.jsonl
+
+# --- Assets & Medien (müssen meist nicht indiziert werden) ---
+# Falls du mit Bildern arbeitest, kannst du diese Sektion anpassen
+assets/
+public/
+static/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.mp4
+*.mov
+*.zip
+*.tar
+*.gz
+*.pdf
